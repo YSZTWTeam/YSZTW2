@@ -1,0 +1,9 @@
+数据库：
+表名：都用大写，如： USER
+数据库名: DB_大写  如：DB_YSZTW
+字段名: 第一个字母小写，每个单词第一个字母大写, 动词最前，形容词中间，然后名词，状语最后  如：loginName,  articleID
+
+Model:
+方法名：第一个字母大写，每个单词第一个字母大写, 动词最前，形容词中间，然后名词，状语最后  如： GetArticleName()   LoginUser()   SendFeedbackMessage()
+变量名：同数据库字段名规则
+SQL语句变量，在最后加个Sql，其他基本差不多，如： $GetArticleIDSql    $CheckUserExitSql
