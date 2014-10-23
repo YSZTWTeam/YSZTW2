@@ -1,0 +1,137 @@
+<?php
+class user_model extends CI_Model
+{
+
+	//按照Excel，这个Login方法可以引用4个变量：$loginName,$loginPsw,$loginTime,$loginPosition
+	function Login($loginName,$loginPsw,$loginTime,$loginPosition)
+	{
+		//先验证
+		$verifySql="select * from USER_INFO where loginName='$loginName' and loginPsw='$loginPsw'";
+		$res=$this->db->query($verifySql);
+		
+		//如果验证正确，那么需要把相关登陆数据插入USER_LOGIN_HISTORY
+		//num_rows()函数就是用来验证数据库返回来的结果有几行，一般来说大于0就代表有结果，等于0代表验证失败，数据库找不到匹配的数据
+		if($res->num_rows() > 0)
+		{
+			//先取userID
+			$UserIDSql="select userID from USER_INFO where loginName='$loginName' and loginPsw='$loginPsw'";
+			$userIDRes=$this->db->query($verifySql);
+			//此SQL语句的结果只有1行，是单结果，所以我们不需要用foreach循环取数
+			$userIDRow=$userIDRes->result_array();
+			$userID=$userIDRow['userID'];
+			
+			//取得userID就可以开始执行下面的SQL插入语句了
+			$loginHistorySql="insert into USER_LOGIN_HISTORY (userID,loginTime,loginPosition) values ('$userID','$loginTime','$loginPosition')";
+			//词语句仅仅执行以下就行了，插不插入得了数据对用户登陆来说没什么影响，我们目前不需要去知道该语句是否成功。
+			$this->db->query($loginHistorySql);
+			
+			//$res是最初验证后取得的用户的所有数据，我们把它们传回去，方便Controller那边把一些用户信息放进session. 否则我们return个1就够了。
+			return $res;
+			}//if:$res-row > 0
+		//如果数据库返回来的行数不大于0，代表验证失败，直接返回0. 我们可以在Controller里面设置错误提示。
+		else
+		{
+			return 0;
+			}
+			
+		}//function end
+	
+	//用户注册,这里面的变量我漏掉了$userGrade,因为我觉得作者的等级不应该由他们自己定，应该由我们工作人员去定。
+	function Reg($loginName,$loginPsw,$nickName,$trueName,$email,$mobilNum,$userStatus,$regTime,$activeTime,$birthday,$keyword,$userHobbyKeyword)
+	{
+		//先检查一下登陆名和昵称是否被注册过
+		$checkLoginNameSql="select * from USER_INFO where loginName='$loginName' or nickName='$nickName'";
+		$userExist=$this->db->query($checkLoginNameSql);
+		
+		//如果这用户名没存在过，则可以注册
+		if(!$userExist->num_rows()>0)
+		{
+			//因为我们数据库分2个表，一个表是USER_INFO,另一个是USER_OTHER
+			$regUserInfoSql="insert into USER_INFO (loginName,loginPsw,nickName,trueName,email,mobilNum,userStatus) values ('$loginName','$loginPsw','$nickName','$trueName','$email','$mobilNum','$userStatus')";
+			$res1=$this->db->query($regUserInfoSql);
+			
+			//基本信息插入成功则继续
+			if($res1)
+			{
+			
+				$regUserOtherSql="insert into USER_OTHER (regTime,activeTime,birthday,keyword,userHobbyKeyword) values ('$regTime','$activeTime','$birthday','$keyword','$userHobbyKeyword')";
+				$res2=$this->db->query($regUserOtherSql);
+			
+			//在这里，以$res1的结果为准，只要插入成功，那么就应该返回1
+				if($res2)
+				{
+					return 1;
+					}//if:res2
+				else
+				{
+					return "ERR#0001";
+					}
+				}//if:res1
+			else
+			{
+				return "ERR#0006";
+				}
+			}
+			//如果用户已经存在
+		else
+		{
+			return "ERR#0007";
+			}
+		}//function end
+
+	//用户信息更新，这里我漏掉了$mobileNum和$email,因为这2个比较关键，不能随便改，需要另外写2个带验证的方法来执行
+	function UpdateUserInfo($userID,$nickName,$trueName,$userStatus,$birthday,$keyword,$userHobbyKeyword)
+	{
+		$updateUserInfoSql="update USER_INFO set nickName='$nickName',trueName='$trueName',userStatus='$userStatus' where userID='$userID'";
+		$res1=$this->db->query($updateUserInfoSql);
+		
+		if($res1)
+		{
+		$updateUserOtherSql="update USER_OTHER set birthday='$birthday',keyword='$keyword',userHobbyKeyword='$userHobbyKeyword' where userID='$userID'";
+		$res2=$this->db->query($updateUserOtherSql);
+			if($res2)
+			{
+				return 1;
+				}//if:res2
+			else
+			{
+				return "ERR#0002";
+				}
+			}//if:$res1
+		else
+		{
+			return "ERR#0005";
+			}
+		
+		}//function end
+	
+	//用户改密码
+	function ChangePsw($userID,$loginName,$oldLoginPsw,$newLoginpsw)
+	{
+		$verifySql="select * from USER_INFO where loginName='$loginName' and loginPsw='$oldLoginPsw'";
+		$userVerified=$this->db->query($verifySql);
+		
+		if($userVerified)
+		{
+			$ChangePswSql="update USER_INFO set loginPsw='$newLoginPsw' where loginName='$loginName'";
+			$res=$this->db->query($ChangePswSql);
+			
+			if($res)
+			{
+				return 1;
+				}//if:$res
+			else
+			{
+				return "ERR0004";
+				}	
+			}//if:$userverify
+		else
+		{
+			return "ERR0003";
+			}
+		
+		}//function end
+	
+	
+}//user_model End
+?>
