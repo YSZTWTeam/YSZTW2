@@ -1,0 +1,43 @@
+<?php
+	class user_model extends CI_Model{
+		
+		//添加用户间相互关注关系
+		//插入USER_FAVORITE_USER中,同时USER中相应$userID的作品favSum+1, 成功返回1，否则返回0
+		function FavUser($userID,$targetUserID,$favTime){
+			
+			if(!isset($userID)||!isset($targetUserID)||!isset($targetUserID)){
+				return 0;
+			}
+			
+			//一般sql语句变量名，我们在后面加上“Sql”，第一个字母尽量大写
+			$insertSql = "insert USER_FAVORITE_USER  (userID,favArticleID,favTime,favStatus) values ('$userID','$targetUserID','$favTime','1')";
+			
+			//不是很确定 favSum = favSum+1 这种写法是否成立
+			$updateSql = "update user_other set favSum = favSum+1 where userid = '$targetUserID'";
+			
+			//CI 有sql调用方法保证两个sql同步执行或同步回退的功能吗?？如没有，则要考虑sql的函数或存储过程。
+			$res1=$this->db->query($insertSql);
+			
+			if($res1)
+			{
+				$res2=$this->db->query($updateSql);
+				
+				if($res2)
+				{
+					return 1;
+					}//if:$res2
+				else
+				{
+					return "ERR#0010"; //错误代码说明：关注成功，但是关注数量没添加成功
+					}
+				
+				}//if:#res1
+			else
+			{
+				return "ERR#0011"; //错误代码说明：没关注成功（连第二个数据库语句都不执行）
+				}
+		}
+		
+	}
+
+?>
