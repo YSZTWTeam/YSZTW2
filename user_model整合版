@@ -22,16 +22,26 @@
 			//取得userID就可以开始执行下面的SQL插入语句了
 			$loginHistorySql="insert into USER_LOGIN_HISTORY (userID,loginTime,loginPosition) values ('$userID','$loginTime','$loginPosition')";
 			//词语句仅仅执行以下就行了，插不插入得了数据对用户登陆来说没什么影响，我们目前不需要去知道该语句是否成功。
-			$this->db->query($loginHistorySql);
+			$res2=$this->db->query($loginHistorySql);
 			
+			if($res2)
+			{
+				$return=1;
+				}//if:$res2
+			else
+			{
+				$return="ERR#0008";
+				}
 			//$res是最初验证后取得的用户的所有数据，我们把它们传回去，方便Controller那边把一些用户信息放进session. 否则我们return个1就够了。
 			return $res;
 			}//if:$res-row > 0
 		//如果数据库返回来的行数不大于0，代表验证失败，直接返回0. 我们可以在Controller里面设置错误提示。
 		else
 		{
-			return 0;
+			$return=0;
 			}
+		
+		return $return;
 			
 		}
 	//-------------------------------------------------------------------------------------------------------------
@@ -60,23 +70,25 @@
 			//在这里，以$res1的结果为准，只要插入成功，那么就应该返回1
 				if($res2)
 				{
-					return 1;
+					$return=1;
 					}//if:res2
 				else
 				{
-					return "ERR#0001";
+					$return="ERR#0001";
 					}
 				}//if:res1
 			else
 			{
-				return "ERR#0006";
+				$return="ERR#0006";
 				}
 			}
 			//如果用户已经存在
 		else
 		{
-			return "ERR#0007";
+			$return="ERR#0007";
 			}
+			
+		return $return;
 		}
 		
 	//------------------------------------------------------------------------------------------------------------
@@ -93,17 +105,19 @@
 		$res2=$this->db->query($updateUserOtherSql);
 			if($res2)
 			{
-				return 1;
+				$return=1;
 				}//if:res2
 			else
 			{
-				return "ERR#0002";
+				$return="ERR#0002";
 				}
 			}//if:$res1
 		else
 		{
-			return "ERR#0005";
+			$return="ERR#0005";
 			}
+		
+		return $return;
 		
 		}
 	//------------------------------------------------------------------------------------------------------------
@@ -121,18 +135,18 @@
 			
 			if($res)
 			{
-				return 1;
+				$return=1;
 				}//if:$res
 			else
 			{
-				return "ERR0004";
+				$return="ERR0004";
 				}	
 			}//if:$userverify
 		else
 		{
-			return "ERR0003";
+			$return="ERR0003";
 			}
-		
+		return $return;
 		}
 	//------------------------------------------------------------------------------------------------------------
 		
@@ -141,7 +155,7 @@
 		function FavUser($userID,$targetUserID,$favTime){
 			
 			if(!isset($userID)||!isset($targetUserID)||!isset($targetUserID)){
-				return 0;
+				$return=0;
 			}
 			
 			//一般sql语句变量名，我们在后面加上“Sql”，第一个字母尽量大写
@@ -159,18 +173,20 @@
 				
 				if($res2)
 				{
-					return 1;
+					$return=1;
 					}//if:$res2
 				else
 				{
-					return "ERR#0010"; //错误代码说明：关注成功，但是关注数量没添加成功
+					$return="ERR#0010"; //错误代码说明：关注成功，但是关注数量没添加成功
 					}
 				
 				}//if:#res1
 			else
 			{
-				return "ERR#0011"; //错误代码说明：没关注成功（连第二个数据库语句都不执行）
+				$return="ERR#0011"; //错误代码说明：没关注成功（连第二个数据库语句都不执行）
 				}
+		
+			return $return;
 		}
 	//------------------------------------------------------------------------------------------------------------
 	
@@ -197,19 +213,20 @@
 			
 			// If update successfully, return 1
 			if ($updUserInfoRes){
-				return 1;
+				$return=1;
 			}
 			
 			// if update failed, return 0
 			else{
-				return "ERR#0021";//错误代码说明：用户访问后，并没有使被访问用户的被访问数量增加1
+				$return="ERR#0021";//错误代码说明：用户访问后，并没有使被访问用户的被访问数量增加1
 			}
 		}
 		
 		// if insert failed, return 0 
 		else{
-			return "ERR#0022";//错误代码说明：用户的访问记录生成未成功
+			$return="ERR#0022";//错误代码说明：用户的访问记录生成未成功
 		}
+		return $return;
 	}
 	//------------------------------------------------------------------------------------------------------------
 		
