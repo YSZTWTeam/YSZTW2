@@ -1,0 +1,197 @@
+<?php
+class article_model extends CI_Model
+{
+	//upload/create article
+	function Upload($articleNO,$articleName,$userID,$uploadTime,$updateTime,$articleStatus,$articleDesc,$articlePic1,$articlePic2,$articlePic3,$groupName1,$groupName2,$keyword)
+	{
+		//如果作品编号为空，我们帮用户自动生成，我个人建议编号根其ID号，插入日期有关，再逐步增加
+		if($articleNO=="")
+		{
+			$i=0;
+
+			do
+			{
+				$i=$i+1;
+				$articleNO=$userID."A".date('dmy').$i;
+				
+				$checkArticleNoSql="select * from ARTICLE where userID='$userID' and articleNo='$articleNO'";
+				$articleNoExist=$this->db->query($checkArticleNoSql);
+				}
+			while($articleNoExist);
+			}//if:$articleNo==""
+		
+		///////////////////////////////
+		
+		//这里留些空白，作为将来对图像的处理	
+			
+		///////////////////////////////	
+			
+		//根据groupName1和groupName2取类型groupID	
+		$getGroupIDSql="select groupID from GROUP where groupName1='$groupName1' and groupName2='$groupName2'";
+		$getGroupID=$this->db->query($getGroupIDSql);
+		$groupIDRow=$getGroupID->result_array();
+		$groupID=$groupID1Row['groupID'];
+			
+		//准备好了所有数据
+		$uploadArticleSql="insert into ARTICLE (articleNO,articleName,userID,uploadTime,updateTime,articleStatus,articleDesc,articlePic1,articlePic2,articlePic3,$groupID,$keyword) values ('$articleNO','$articleName','$userID','$uploadTime','$updateTime','$articleStatus','$articleDesc','$articlePic1','$articlePic2','$articlePic3','$groupID','$keyword')";	
+		$res=$this->db->query($uploadArticleSql);
+		
+		if($res)
+		{
+			$return=1;
+			}//if:res
+		else
+		{
+			$return="ERR0009"; //用户作品上传失败
+			}
+		
+		return $return;
+		}
+	//-------------------------------------------------------------------------------------------------
+	
+	//update Article info,
+	function Update($articleID,$articleNO,$articleName,$userID,$updateTime,$articleStatus,$articleDesc,$articlePic1,$articlePic2,$articlePic3,$groupName1,$groupName2,$keyword)
+	{
+		///////////////////////////////
+		
+		//这里留些空白，作为将来对图像的处理	
+			
+		///////////////////////////////	
+			
+		//根据groupName1和groupName2取类型groupID	
+		$getGroupIDSql="select groupID from GROUP where groupName1='$groupName1' and groupName2='$groupName2'";
+		$getGroupID=$this->db->query($getGroupIDSql);
+		$groupIDRow=$getGroupID->result_array();
+		$groupID=$groupID1Row['groupID'];
+		
+		$updateArticleSql="update ARTICLE set articleNO='$articleNO',articleName='$articleName',updateTime='$updateTime',articleStatus='$articleStatus',articleDesc='$articleDesc',articlePic1='$articlePic1',articlePic2='$articlePic2',articlePic3='$articlePic3',groupID='$groupID',keyword='$keyword' where articleID='$articleID'";
+		
+		$res=$this->db->query($uploadArticleSql);
+		
+		if($res)
+		{
+			$return=1;
+			}//if:res
+		else
+		{
+			$return="ERR0012"; //用户作品更新失败
+			}
+		
+		return $return;
+		
+		}
+	//-------------------------------------------------------------------------------------------------
+	
+	//load all article data
+	function LoadAll()
+	{
+		$loadSql="select * from ARTICLE order by updateTime";
+		
+		$res=$this->db->query($loadSql);
+		
+		if($res)
+		{
+			$return=1;
+			}//if:res
+		else
+		{
+			$return="ERR0013"; //作品读取失败 或 无作品可读
+			}
+		
+		return $return;
+		}
+	//-------------------------------------------------------------------------------------------------
+	
+	//load all article data by userID
+	function LoadByUser($userID)
+	{
+		$loadSql="select * from ARTICLE where userID='$userID' order by updateTime";
+		
+		$res=$this->db->query($loadSql);
+		
+		if($res)
+		{
+			$return=1;
+			}//if:res
+		else
+		{
+			$return="ERR0013"; //作品读取失败或无作品可读
+			}
+		
+		return $return;
+		}
+	//-------------------------------------------------------------------------------------------------
+	
+	//load all article data by likeSum
+	function LoadByLike()
+	{
+		$loadSql="select * from ARTICLE order by likeSum";
+		
+		$res=$this->db->query($loadSql);
+		
+		if($res)
+		{
+			$return=1;
+			}//if:res
+		else
+		{
+			$return="ERR0013"; //作品读取失败或无作品可读
+			}
+		
+		return $return;
+		}
+	//-------------------------------------------------------------------------------------------------
+	
+	//load all article data by groupName1 and groupName2
+	function LoadByGroup($groupName1,$groupName2)
+	{
+		$getGroupIDSql="select groupID from GROUP where groupName1='$groupName1' and groupName2='$groupName2'";
+		$getGroupID=$this->db->query($getGroupIDSql);
+		$groupIDRow=$getGroupID->result_array();
+		$groupID=$groupID1Row['groupID'];
+		
+		$loadSql="select * from ARTICLE where groupID='$groupID' order by updateTime";
+		
+		$res=$this->db->query($loadSql);
+		
+		if($res)
+		{
+			$return=1;
+			}//if:res
+		else
+		{
+			$return="ERR0013"; //作品读取失败或无作品可读
+			}
+		
+		return $return;
+		}
+	//-------------------------------------------------------------------------------------------------
+	
+	//load all article data by groupName1 and groupName2, order by likeSum
+	function LoadByGroup($groupName1,$groupName2)
+	{
+		$getGroupIDSql="select groupID from GROUP where groupName1='$groupName1' and groupName2='$groupName2'";
+		$getGroupID=$this->db->query($getGroupIDSql);
+		$groupIDRow=$getGroupID->result_array();
+		$groupID=$groupID1Row['groupID'];
+		
+		$loadSql="select * from ARTICLE where groupID='$groupID' order by likeSum";
+		
+		$res=$this->db->query($loadSql);
+		
+		if($res)
+		{
+			$return=1;
+			}//if:res
+		else
+		{
+			$return="ERR0013"; //作品读取失败或无作品可读
+			}
+		
+		return $return;
+		}
+	//-------------------------------------------------------------------------------------------------
+	
+}//model end
+
+?>
