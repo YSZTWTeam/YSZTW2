@@ -12,7 +12,7 @@ class article_model extends CI_Model
 			do
 			{
 				$i=$i+1;
-				$articleNO=$userID."A".date('dmy').$i;
+				$articleNO=$userID."A".date('ymd').$i;
 				
 				$checkArticleNoSql="select * from ARTICLE where userID='$userID' and articleNo='$articleNO'";
 				$articleNoExist=$this->db->query($checkArticleNoSql);
@@ -42,7 +42,7 @@ class article_model extends CI_Model
 			}//if:res
 		else
 		{
-			$return="ERR0009"; //用户作品上传失败
+			$return="ERR#0009"; //用户作品上传失败
 			}
 		
 		return $return;
@@ -74,7 +74,7 @@ class article_model extends CI_Model
 			}//if:res
 		else
 		{
-			$return="ERR0012"; //用户作品更新失败
+			$return="ERR#0012"; //用户作品更新失败
 			}
 		
 		return $return;
@@ -95,7 +95,7 @@ class article_model extends CI_Model
 			}//if:res
 		else
 		{
-			$return="ERR0013"; //作品读取失败 或 无作品可读
+			$return="ERR#0013"; //作品读取失败 或 无作品可读
 			}
 		
 		return $return;
@@ -115,7 +115,7 @@ class article_model extends CI_Model
 			}//if:res
 		else
 		{
-			$return="ERR0013"; //作品读取失败或无作品可读
+			$return="ERR#0013"; //作品读取失败或无作品可读
 			}
 		
 		return $return;
@@ -135,7 +135,7 @@ class article_model extends CI_Model
 			}//if:res
 		else
 		{
-			$return="ERR0013"; //作品读取失败或无作品可读
+			$return="ERR#0013"; //作品读取失败或无作品可读
 			}
 		
 		return $return;
@@ -160,7 +160,7 @@ class article_model extends CI_Model
 			}//if:res
 		else
 		{
-			$return="ERR0013"; //作品读取失败或无作品可读
+			$return="ERR#0013"; //作品读取失败或无作品可读
 			}
 		
 		return $return;
@@ -185,11 +185,70 @@ class article_model extends CI_Model
 			}//if:res
 		else
 		{
-			$return="ERR0013"; //作品读取失败或无作品可读
+			$return="ERR#0013"; //作品读取失败或无作品可读
 			}
 		
 		return $return;
 		}
+	//-------------------------------------------------------------------------------------------------
+	
+	//关注作品
+	function FavArticle($articleID,$userID,$favTime)
+	{
+		$favSql="insert into USER_FAVORITE_ARTICLE (userID,favArticleID,favTime,favStatus) values ('$userID','$articleID','$favTime')";
+		$res=$this->db->query('$favSql');
+		
+		if($res)
+		{
+			$updateSql="update ARTICLE set favSum=favSum+1 where articleID='$articleID'";
+			$res2=$this->db->query('$updateSql');
+			
+			if($res2)
+			{
+				$return=1;
+				}//if:$res2
+			else
+			{
+				$retuen="ERR#0014"; //用户关注作品成功，但是被关注作品的被关注数量却没有+1
+				}
+			}//if:$res
+		else
+		{
+			$return="ERR#0015";//用户关注作品失败
+			}
+			
+			return $return;
+		}
+	//-------------------------------------------------------------------------------------------------
+	
+	//点击缩略图进行详细查看作品从而产生的记录
+	function VisitArticle($userID,$targetArticleID,$visitTime)
+	{
+		$visitSql="insert into ARTICLE_VISIT (userID,targetArticleID,visitTime) values ('$userID','$targetArticleID','$visitTime')";
+		$res=$this->db->query('$visitSql');
+		
+		if($res)
+		{
+			$updateSql="update ARTICLE set deepViewSum=deepViewSum+1 where articleID='$articleID'";
+			$res2=$this->db->query('$updateSql');
+			
+			if($res2)
+			{
+				$return=1;
+				}//if:$res2
+			else
+			{
+				$retuen="ERR#0016"; //用户详细查看作品成功，但是被关注作品的被详细查看数量却没有+1
+				}
+			}//if:$res
+		else
+		{
+			$return="ERR#0017";//用户详细查看作品失败
+			}
+			
+			return $return;
+		}
+	
 	//-------------------------------------------------------------------------------------------------
 	
 }//model end
