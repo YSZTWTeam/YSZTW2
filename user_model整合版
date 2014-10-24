@@ -173,8 +173,44 @@
 		}
 	//------------------------------------------------------------------------------------------------------------
 	
+	/**
+	 * A "VisitUser" function for adding history record when user visiting   
+	 *
+     * @param $userID        
+     * @param $targetUserID  
+     * @param $visitTime  
+     *
+     * @return 1 - success
+	 *         0 - failed
+     */
+	function VisitUser($userID, $targetUserID, $visitTime){
 	
-	
+		// Insert a history record for user visiting
+		$addUserVisitSql = "insert into USER_VISIT (userId, targetUserId, vistTime) values('$userID', '$targetUserID', '$visitTime')";
+		$addUserVisitRes = $this->db->query($addUserVisitSql);
+		
+		// If insert successfully, update the count of visiting in USER_OTHER table
+		if ($addUserVisitRes){
+			$updUserInfoSql = "update USER_OTHER set visitSum = visitSum + 1 where userID = $userID";
+			$updUserInfoRes = $this->db->query($updUserInfoSql);
+			
+			// If update successfully, return 1
+			if ($updUserInfoRes){
+				return 1;
+			}
+			
+			// if update failed, return 0
+			else{
+				return "ERR#0021";//错误代码说明：用户访问后，并没有使被访问用户的被访问数量增加1
+			}
+		}
+		
+		// if insert failed, return 0 
+		else{
+			return "ERR#0022";//错误代码说明：用户的访问记录生成未成功
+		}
+	}
+	//------------------------------------------------------------------------------------------------------------
 		
 }//model_end
 
