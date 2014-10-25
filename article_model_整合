@@ -250,7 +250,85 @@ class article_model extends CI_Model
 		}
 	
 	//-------------------------------------------------------------------------------------------------
+	 /**
+	 * A "LoadByKeyword" function for retrieving article information by keyword   
+	 *
+     * @param $keyword   
+     *
+     * @return "1"        - success
+	 *         "ERR#0023" - failed
+     */
+	function LoadByKeyword($keyword){
 	
+		// Enquiry ARTICLE info by keyword except "DELETE" records
+		$loadByKeywordSql="select * from ARTICLE 
+		                    where keyword like '%".$keyword."%' 
+						      and articleStatus <> 'DELETE'";
+		$loadByKeywordRes=$this->db->query($loadByKeywordSql);
+		
+		if($loadByKeywordRes){
+			return "1";
+		}
+		else{
+			return "ERR0023"; //failed
+		}
+	}
+
+	//-------------------------------------------------------------------------------------------------	
+    /**
+	 * A "LoadByGroupKeyword" function for retrieving article information by keyword and group   
+	 *
+     * @param $keyword
+     * @param $groupName1
+     * @param $groupName2
+     *
+     * @return "1"        - success
+	 *         "ERR#0024" - failed
+     */
+	function LoadByGroupKeyword($keyword, $groupName1, $groupName2){
+	
+		// Prepare SQL statement to enquiry ARTICLE info by keyword except "DELETE" records
+		$loadByGroupKeywordSql="select * from ARTICLE t1
+		                         where keyword like '%".$keyword."%'
+								   and articleStatus <> 'DELETE'
+								   and exists (select 1 from GROUP 
+								                where t1.groupID = groupID
+								                  and groupName1 = '".$groupName1."'
+												  and groupName2 = '".$groupName2."')";
+												  
+		// Execute the SQL
+		$loadByGroupKeywordRes=$this->db->query($loadByGroupKeywordSql);
+		
+		// If SQL execution successfully, return error code. Otherwise, return "1" 
+		if($loadByGroupKeywordRes){
+			return "1";
+				}
+		else{
+			return "ERR0024"; //failed
+				}
+	}
+	//-------------------------------------------------------------------------------------------------
+    /**
+	 * A "LoadByReport" function for retrieving reported article information
+     *
+     * @return "1"        - success
+	 *         "ERR#0025" - failed
+     */
+	function LoadByReport(){
+	
+		// Enquiry reported ARTICLE records 
+		$loadByReportSql="select * from ARTICLE 
+		                   where articleStatus = 'report'";
+		$loadByReportRes=$this->db->query($loadByReportSql);
+		
+		if($loadByReportRes){
+			return "1";
+				}
+		else{
+			return "ERR0025"; //failed
+				}
+		}
+	//-------------------------------------------------------------------------------------------------
 }//model end
 
 ?>
