@@ -5,24 +5,29 @@
 	function Login($loginName,$loginPsw,$loginTime,$loginPosition)
 	{
 		//先验证
-		$verifySql="select * from USER_INFO where loginName='$loginName' and loginPsw='$loginPsw'";
-		$res=$this->db->query($verifySql);
+		$verifyData[0]=$loginName;
+		$verifyData[1]=$loginPsw;
+		$verifySql="select * from USER_INFO where loginName=? and loginPsw=?";
+		$res=$this->db->query($verifySql,$verifyData);
 		
 		//如果验证正确，那么需要把相关登陆数据插入USER_LOGIN_HISTORY
 		//num_rows()函数就是用来验证数据库返回来的结果有几行，一般来说大于0就代表有结果，等于0代表验证失败，数据库找不到匹配的数据
 		if($res->num_rows() > 0)
 		{
 			//先取userID
-			$UserIDSql="select userID from USER_INFO where loginName='$loginName' and loginPsw='$loginPsw'";
-			$userIDRes=$this->db->query($verifySql);
+			$userIDSql="select userID from USER_INFO where loginName=? and loginPsw=?";
+			$userIDRes=$this->db->query($userIDSql,$dataVerify);
 			//此SQL语句的结果只有1行，是单结果，所以我们不需要用foreach循环取数
 			$userIDRow=$userIDRes->result_array();
 			$userID=$userIDRow['userID'];
 			
 			//取得userID就可以开始执行下面的SQL插入语句了
-			$loginHistorySql="insert into USER_LOGIN_HISTORY (userID,loginTime,loginPosition) values ('$userID','$loginTime','$loginPosition')";
+			$historyData[0]=$userID;
+			$historyData[1]=$loginTime;
+			$historyData[2]=$loginPosition;
+			$loginHistorySql="insert into USER_LOGIN_HISTORY (userID,loginTime,loginPosition) values (?,?,?)";
 			//词语句仅仅执行以下就行了，插不插入得了数据对用户登陆来说没什么影响，我们目前不需要去知道该语句是否成功。
-			$res2=$this->db->query($loginHistorySql);
+			$res2=$this->db->query($loginHistorySql,$historyData);
 			
 			if($res2)
 			{
@@ -47,25 +52,39 @@
 	//-------------------------------------------------------------------------------------------------------------
 	
 	//用户注册,这里面的变量我漏掉了$userGrade,因为我觉得作者的等级不应该由他们自己定，应该由我们工作人员去定。
-	function Reg($loginName,$loginPsw,$nickName,$trueName,$email,$mobilNum,$userStatus,$regTime,$activeTime,$birthday,$keyword,$userHobbyKeyword)
+	function Reg($loginName,$loginPsw,$nickName,$trueName,$email,$mobileNum,$userStatus,$regTime,$activeTime,$birthday,$keyword,$userHobbyKeyword)
 	{
 		//先检查一下登陆名和昵称是否被注册过
-		$checkLoginNameSql="select * from USER_INFO where loginName='$loginName' or nickName='$nickName'";
-		$userExist=$this->db->query($checkLoginNameSql);
+		$checkData[0]=$loginName;
+		$checkData[1]=$nickName;
+		$checkLoginNameSql="select * from USER_INFO where loginName=? or nickName=?";
+		$userExist=$this->db->query($checkLoginNameSql,$checkData);
 		
 		//如果这用户名没存在过，则可以注册
 		if(!$userExist->num_rows()>0)
 		{
 			//因为我们数据库分2个表，一个表是USER_INFO,另一个是USER_OTHER
-			$regUserInfoSql="insert into USER_INFO (loginName,loginPsw,nickName,trueName,email,mobilNum,userStatus) values ('$loginName','$loginPsw','$nickName','$trueName','$email','$mobilNum','$userStatus')";
-			$res1=$this->db->query($regUserInfoSql);
+			$infoData[0]=$loginName;
+			$infoData[1]=$loginPsw;
+			$infoData[2]=$nickName;
+			$infoData[3]=$trueName;
+			$infoData[4]=$email;
+			$infoData[5]=$mobileNum;
+			$infoData[6]=$userStatus;
+			$regUserInfoSql="insert into USER_INFO (loginName,loginPsw,nickName,trueName,email,mobilNum,userStatus) values (?,?,?,?,?,?,?)";
+			$res1=$this->db->query($regUserInfoSql,$infoData);
 			
 			//基本信息插入成功则继续
 			if($res1)
 			{
-			
-				$regUserOtherSql="insert into USER_OTHER (regTime,activeTime,birthday,keyword,userHobbyKeyword) values ('$regTime','$activeTime','$birthday','$keyword','$userHobbyKeyword')";
-				$res2=$this->db->query($regUserOtherSql);
+				
+				$otherData[0]=$regTime;
+				$otherData[1]=$activeTime;
+				$otherData[2]=$birthday;
+				$otherData[3]=$keyword;
+				$otherData[4]=$userHobbyKeyword;
+				$regUserOtherSql="insert into USER_OTHER (regTime,activeTime,birthday,keyword,userHobbyKeyword) values (?,?,?,?,?)";
+				$res2=$this->db->query($regUserOtherSql,$otherData);
 			
 			//在这里，以$res1的结果为准，只要插入成功，那么就应该返回1
 				if($res2)
@@ -96,13 +115,24 @@
 	//用户信息更新，这里我漏掉了$mobileNum和$email,因为这2个比较关键，不能随便改，需要另外写2个带验证的方法来执行
 	function UpdateUserInfo($userID,$nickName,$trueName,$userStatus,$birthday,$keyword,$userHobbyKeyword)
 	{
-		$updateUserInfoSql="update USER_INFO set nickName='$nickName',trueName='$trueName',userStatus='$userStatus' where userID='$userID'";
-		$res1=$this->db->query($updateUserInfoSql);
+		
+		$updateInfoData[0]=$nickName;
+		$updateInfoData[1]=$trueName;
+		$updateInfoData[2]=$userStatus;
+		$updateInfoData[3]=$userID;
+		
+		$updateUserInfoSql="update USER_INFO set nickName=?,trueName=?,userStatus=? where userID=?";
+		$res1=$this->db->query($updateUserInfoSql,$updateInfoData);
 		
 		if($res1)
 		{
-		$updateUserOtherSql="update USER_OTHER set birthday='$birthday',keyword='$keyword',userHobbyKeyword='$userHobbyKeyword' where userID='$userID'";
-		$res2=$this->db->query($updateUserOtherSql);
+		$updateOtherData[0]=$birthday;
+		$updateOtherData[1]=$keyword;
+		$updateOtherData[2]=$userHobbyKeyword;
+		$updateOtherData[3]=$userID;
+			
+		$updateUserOtherSql="update USER_OTHER set birthday=?,keyword=?,userHobbyKeyword=? where userID=?";
+		$res2=$this->db->query($updateUserOtherSql,$updateOtherData);
 			if($res2)
 			{
 				$return=1;
@@ -123,15 +153,19 @@
 	//------------------------------------------------------------------------------------------------------------
 	
 	//用户改密码
-	function ChangePsw($userID,$loginName,$oldLoginPsw,$newLoginpsw)
+	function ChangePsw($userID,$loginName,$oldLoginPsw,$newLoginPsw)
 	{
-		$verifySql="select * from USER_INFO where loginName='$loginName' and loginPsw='$oldLoginPsw'";
-		$userVerified=$this->db->query($verifySql);
+		$verifyData[0]=$loginName;
+		$verifyData[1]=$oldLoginPsw;
+		$verifySql="select * from USER_INFO where loginName=? and loginPsw=?";
+		$userVerified=$this->db->query($verifySql,$verifyData);
 		
 		if($userVerified)
 		{
-			$ChangePswSql="update USER_INFO set loginPsw='$newLoginPsw' where loginName='$loginName'";
-			$res=$this->db->query($ChangePswSql);
+			$changeData[0]=$newLoginPsw;
+			$changeData[1]=$loginName;
+			$ChangePswSql="update USER_INFO set loginPsw=? where loginName=?";
+			$res=$this->db->query($ChangePswSql,$changeData);
 			
 			if($res)
 			{
@@ -158,14 +192,16 @@
 				$return=0;
 			}
 			
-			//一般sql语句变量名，我们在后面加上“Sql”，第一个字母尽量大写
-			$insertSql = "insert USER_FAVORITE_USER  (userID,favArticleID,favTime,favStatus) values ('$userID','$targetUserID','$favTime','1')";
+			//一般sql语句变量名，我们在后面加上"Sql"，第一个字母尽量大写
+			$insertData[0]=$userID;
+			$insertData[1]=$targetUserID;
+			$insertData[2]=$favTime;
+			$insertData[3]=1;
+			$insertSql = "insert USER_FAVORITE_USER  (userID,favArticleID,favTime,favStatus) values (?,?,?,?)";
 			
-			//不是很确定 favSum = favSum+1 这种写法是否成立
 			$updateSql = "update user_other set favSum = favSum+1 where userid = '$targetUserID'";
 			
-			//CI 有sql调用方法保证两个sql同步执行或同步回退的功能吗?？如没有，则要考虑sql的函数或存储过程。
-			$res1=$this->db->query($insertSql);
+			$res1=$this->db->query($insertSql,$insertData);
 			
 			if($res1)
 			{
@@ -203,8 +239,11 @@
 	function VisitUser($userID, $targetUserID, $visitTime){
 	
 		// Insert a history record for user visiting
-		$addUserVisitSql = "insert into USER_VISIT (userId, targetUserId, vistTime) values('$userID', '$targetUserID', '$visitTime')";
-		$addUserVisitRes = $this->db->query($addUserVisitSql);
+		$visitData[1]=$userID;
+		$visitData[2]=$targetUserID;
+		$visitData[3]=$visitTime;
+		$addUserVisitSql = "insert into USER_VISIT (userId, targetUserId, vistTime) values(?,?,?)";
+		$addUserVisitRes = $this->db->query($addUserVisitSql,$visitData);
 		
 		// If insert successfully, update the count of visiting in USER_OTHER table
 		if ($addUserVisitRes){
