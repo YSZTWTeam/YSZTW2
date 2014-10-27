@@ -9,7 +9,7 @@ class comment_model extends CI_Model
 		
 		if($res)
 		{
-			$return=1;
+			$return=$res;
 			}//if:$res
 		else
 		{
@@ -26,7 +26,7 @@ class comment_model extends CI_Model
 		
 		if($res)
 		{
-			$return=1;
+			$return=$res;
 			}//if:$res
 		else
 		{
@@ -44,7 +44,7 @@ class comment_model extends CI_Model
 		
 		if($res)
 		{
-			$return=1;
+			$return=$res;
 			}//if:$res
 		else
 		{
@@ -62,7 +62,7 @@ class comment_model extends CI_Model
 		
 		if($res)
 		{
-			$return=1;
+			$return=$res;
 			}//if:$res
 		else
 		{
@@ -81,7 +81,7 @@ class comment_model extends CI_Model
 		
 		if($res)
 		{
-			$return=1;
+			$return=$res;
 			}//if:$res
 		else
 		{
