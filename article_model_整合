@@ -14,11 +14,15 @@ class article_model extends CI_Model
 				$i=$i+1;
 				$articleNO=$userID."A".date('ymd').$i;
 				
-				$checkArticleNoSql="select * from ARTICLE where userID='$userID' and articleNo='$articleNO'";
-				$articleNoExist=$this->db->query($checkArticleNoSql);
-				}
+				//Prepare SQL parameter data
+				$dataCheck[0] = $userID;
+				$dataCheck[1] = $articleNO;
+				
+				$checkArticleNoSql="select * from ARTICLE where userID=? and articleNo=?";
+				$articleNoExist=$this->db->query($checkArticleNoSql, $dataCheck);
+			}
 			while($articleNoExist);
-			}//if:$articleNo==""
+		}//if:$articleNo==""
 		
 		///////////////////////////////
 		
@@ -26,27 +30,43 @@ class article_model extends CI_Model
 			
 		///////////////////////////////	
 			
+		//Prepare SQL parameter data
+		$dataGet[0] = $groupName1;
+		$dataGet[1] = $groupName2;
 		//根据groupName1和groupName2取类型groupID	
-		$getGroupIDSql="select groupID from GROUP where groupName1='$groupName1' and groupName2='$groupName2'";
-		$getGroupID=$this->db->query($getGroupIDSql);
+		$getGroupIDSql="select groupID from GROUP where groupName1=? and groupName2=?";
+		$getGroupID=$this->db->query($getGroupIDSql, $dataGet);
 		$groupIDRow=$getGroupID->result_array();
-		$groupID=$groupID1Row['groupID'];
+		$groupID=$groupIDRow['groupID'];
 			
+		//Prepare SQL parameter data
+        $dataUpdate[0]  = $articleNO;
+        $dataUpdate[1]  = $articleName;
+        $dataUpdate[2]  = $userID;
+        $dataUpdate[3]  = $uploadTime;
+        $dataUpdate[4]  = $updateTime;
+        $dataUpdate[5]  = $articleStatus;
+        $dataUpdate[6]  = $articleDesc;
+        $dataUpdate[7]  = $articlePic1;
+        $dataUpdate[8]  = $articlePic2;
+        $dataUpdate[9]  = $articlePic3;
+        $dataUpdate[10] = $groupID;
+        $dataUpdate[11] = $keyword;
 		//准备好了所有数据
-		$uploadArticleSql="insert into ARTICLE (articleNO,articleName,userID,uploadTime,updateTime,articleStatus,articleDesc,articlePic1,articlePic2,articlePic3,$groupID,$keyword) values ('$articleNO','$articleName','$userID','$uploadTime','$updateTime','$articleStatus','$articleDesc','$articlePic1','$articlePic2','$articlePic3','$groupID','$keyword')";	
-		$res=$this->db->query($uploadArticleSql);
+		$uploadArticleSql="insert into ARTICLE (articleNO,articleName,userID,uploadTime,updateTime,articleStatus,articleDesc,articlePic1,articlePic2,articlePic3,groupID,keyword) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";	
+		$res=$this->db->query($uploadArticleSql, $dataUpdate);
 		
 		if($res)
 		{
 			$return=1;
-			}//if:res
+		}//if:res
 		else
 		{
 			$return="ERR#0009"; //用户作品上传失败
-			}
+		}
 		
 		return $return;
-		}
+	}
 	//-------------------------------------------------------------------------------------------------
 	
 	//update Article info,
@@ -58,28 +78,127 @@ class article_model extends CI_Model
 			
 		///////////////////////////////	
 			
+		//Prepare SQL parameter data
+		$dataGet[0] = $groupName1;
+		$dataGet[1] = $groupName2;
 		//根据groupName1和groupName2取类型groupID	
-		$getGroupIDSql="select groupID from GROUP where groupName1='$groupName1' and groupName2='$groupName2'";
-		$getGroupID=$this->db->query($getGroupIDSql);
+		$getGroupIDSql="select groupID from GROUP where groupName1=? and groupName2=?";
+		$getGroupID=$this->db->query($getGroupIDSql, $dataGet));
 		$groupIDRow=$getGroupID->result_array();
-		$groupID=$groupID1Row['groupID'];
+		$groupID=$groupIDRow['groupID'];
 		
-		$updateArticleSql="update ARTICLE set articleNO='$articleNO',articleName='$articleName',updateTime='$updateTime',articleStatus='$articleStatus',articleDesc='$articleDesc',articlePic1='$articlePic1',articlePic2='$articlePic2',articlePic3='$articlePic3',groupID='$groupID',keyword='$keyword' where articleID='$articleID'";
+		//Prepare SQL parameter data
+        $dataUpdate[0]  = $articleNO;
+        $dataUpdate[1]  = $articleName;
+        $dataUpdate[2]  = $updateTime;
+        $dataUpdate[3]  = $articleStatus;
+        $dataUpdate[4]  = $articleDesc;
+        $dataUpdate[5]  = $articlePic1;
+        $dataUpdate[6]  = $articlePic2;
+        $dataUpdate[7]  = $articlePic3;
+        $dataUpdate[8]  = $groupID;
+        $dataUpdate[9]  = $keyword;
+        $dataUpdate[10] = $articleID;
+		$updateArticleSql="update ARTICLE set articleNO=?,articleName=?,updateTime=?,articleStatus=?,articleDesc=?,articlePic1=?,articlePic2=?,articlePic3=?,groupID=?,keyword=? where articleID=?";
 		
-		$res=$this->db->query($uploadArticleSql);
+		$res=$this->db->query($updateArticleSql, $dataUpdate);
 		
 		if($res)
 		{
 			$return=1;
-			}//if:res
+		}//if:res
 		else
 		{
 			$return="ERR#0012"; //用户作品更新失败
-			}
+		}
 		
 		return $return;
 		
+	}
+	//-------------------------------------------------------------------------------------------------
+	
+	//delete Article info,
+	function Delete($articleID, $delTime)
+	{
+		
+		//Prepare SQL parameter data
+        $dataUpdate[0]  = $updateTime;
+        $dataUpdate[1]  = $articleStatus;
+		$updateArticleSql="update ARTICLE set updateTime=? where articleID=?";
+		
+		$res=$this->db->query($updateArticleSql, $dataUpdate);
+		
+		if($res)
+		{
+			$return=1;
+		}//if:res
+		else
+		{
+			$return="ERR#0028"; //用户作品更新成删除状态失败
 		}
+		
+		return $return;
+		
+	}
+	//-------------------------------------------------------------------------------------------------
+	
+	//clear "DELETE" Articles 清理所有一个月以前delete的数据
+	function ClearOldData()
+	{
+		
+		$deleteArticleSql="delete from ARTICLE where `updateTime` < date_sub(date(now()),interval 1 month)";
+		
+		$res=$this->db->query($deleteArticleSql);
+		
+		if($res)
+		{
+			$return=1;
+		}//if:res
+		else
+		{
+			$return="ERR#0029"; //清理已删除数据失败
+		}
+		
+		return $return;
+		
+	}
+	//-------------------------------------------------------------------------------------------------
+	
+	//report Article info,
+	function Report($articleID,$content,$reportTime,$userID)
+	{
+		
+		//Prepare SQL parameter data
+		$dataInsert[0] = $articleID;
+		$dataInsert[1] = $content;
+		$dataInsert[2] = $reportTime;
+		$dataInsert[3] = $userID;
+		
+		$reportSql="insert into REPORT (articleID, content, reportTime, userID) values (?, ?, ?, ?)";
+		$reportRes=$this->db->query($reportSql, $dataInsert);
+		
+		if($reportRes)
+		{
+			$updateSql="update ARTICLE set articleStatus = 'REPORT' where articleID = ?";
+			$updateRes=$this->db->query($updateSql, $articleID);
+			
+			if($updateRes)
+			{
+				$return=1;
+			}//if:$updateRes
+			else
+			{
+				$retuen="ERR#0030"; //用户举报作品成功，但是被举报作品的被举报数量却没有+1
+			}
+		}//if:$reportRes
+		else
+		{
+			$return="ERR#0031";//用户举报作品失败
+		}
+		
+		return $return;
+		
+	}
 	//-------------------------------------------------------------------------------------------------
 	
 	//load all article data
@@ -91,35 +210,35 @@ class article_model extends CI_Model
 		
 		if($res)
 		{
-			$return=1;
+			$return=$res;
 			}//if:res
 		else
 		{
 			$return="ERR#0013"; //作品读取失败 或 无作品可读
-			}
+		}
 		
 		return $return;
-		}
+	}
 	//-------------------------------------------------------------------------------------------------
 	
 	//load all article data by userID
 	function LoadByUser($userID)
 	{
-		$loadSql="select * from ARTICLE where userID='$userID' order by updateTime";
+		$loadSql="select * from ARTICLE where userID=? order by updateTime";
 		
-		$res=$this->db->query($loadSql);
+		$res=$this->db->query($loadSql, $userID);
 		
 		if($res)
 		{
-			$return=1;
-			}//if:res
+			$return=$res;
+		}//if:res
 		else
 		{
 			$return="ERR#0013"; //作品读取失败或无作品可读
-			}
+		}
 		
 		return $return;
-		}
+	}
 	//-------------------------------------------------------------------------------------------------
 	
 	//load all article data by likeSum
@@ -131,125 +250,177 @@ class article_model extends CI_Model
 		
 		if($res)
 		{
-			$return=1;
-			}//if:res
+			$return=$res;
+		}//if:res
 		else
 		{
 			$return="ERR#0013"; //作品读取失败或无作品可读
-			}
+		}
 		
 		return $return;
-		}
+	}
 	//-------------------------------------------------------------------------------------------------
 	
 	//load all article data by groupName1 and groupName2
 	function LoadByGroup($groupName1,$groupName2)
 	{
-		$getGroupIDSql="select groupID from GROUP where groupName1='$groupName1' and groupName2='$groupName2'";
-		$getGroupID=$this->db->query($getGroupIDSql);
+		//Prepare SQL parameter data
+		$dataGet[0] = $groupName1;
+		$dataGet[1] = $groupName2;
+		
+		$getGroupIDSql="select groupID from GROUP where groupName1=? and groupName2=?";
+		$getGroupID=$this->db->query($getGroupIDSql, $dataGet);
 		$groupIDRow=$getGroupID->result_array();
-		$groupID=$groupID1Row['groupID'];
+		$groupID=$groupIDRow['groupID'];
 		
-		$loadSql="select * from ARTICLE where groupID='$groupID' order by updateTime";
+		$loadSql="select * from ARTICLE where groupID=? order by updateTime";
 		
-		$res=$this->db->query($loadSql);
+		$res=$this->db->query($loadSql, $groupID);
 		
 		if($res)
 		{
-			$return=1;
-			}//if:res
+			$return=$res;
+		}//if:res
 		else
 		{
 			$return="ERR#0013"; //作品读取失败或无作品可读
-			}
+		}
 		
 		return $return;
-		}
+	}
 	//-------------------------------------------------------------------------------------------------
 	
 	//load all article data by groupName1 and groupName2, order by likeSum
 	function LoadByGroup($groupName1,$groupName2)
 	{
-		$getGroupIDSql="select groupID from GROUP where groupName1='$groupName1' and groupName2='$groupName2'";
-		$getGroupID=$this->db->query($getGroupIDSql);
+		//Prepare SQL parameter data
+		$dataGet[0] = $groupName1;
+		$dataGet[1] = $groupName2;
+		
+		$getGroupIDSql="select groupID from GROUP where groupName1=? and groupName2=?";
+		$getGroupID=$this->db->query($getGroupIDSql, $dataGet);
 		$groupIDRow=$getGroupID->result_array();
-		$groupID=$groupID1Row['groupID'];
+		$groupID=$groupIDRow['groupID'];
 		
-		$loadSql="select * from ARTICLE where groupID='$groupID' order by likeSum";
+		$loadSql="select * from ARTICLE where groupID=? order by likeSum";
 		
-		$res=$this->db->query($loadSql);
+		$res=$this->db->query($loadSql, $groupID);
 		
 		if($res)
 		{
-			$return=1;
-			}//if:res
+			$return=$res;
+		}//if:res
 		else
 		{
 			$return="ERR#0013"; //作品读取失败或无作品可读
-			}
+		}
 		
 		return $return;
+	}
+	//-------------------------------------------------------------------------------------------------
+	
+	//点赞作品
+	function LikeArticle($articleID,$userID,$likeTime)
+	{
+		//Prepare SQL parameter data
+		$dataInsert[0] = $userID;
+		$dataInsert[1] = $articleID;
+		$dataInsert[2] = $likeTime;
+		
+		$favSql="insert into USER_FAVORITE_ARTICLE (userID, likeArticleID, likeTime) values (?, ?, ?)";
+		$res=$this->db->query($favSql, $dataInsert);
+		
+		if($res)
+		{
+			$updateSql="update ARTICLE set likeSum=likeSum+1 where articleID=?";
+			$res2=$this->db->query($updateSql, $articleID);
+			
+			if($res2)
+			{
+				$return=1;
+			}//if:$res2
+			else
+			{
+				$retuen="ERR#0026"; //用户点赞作品成功，但是被点赞作品的被关注数量却没有+1
+			}
+		}//if:$res
+		else
+		{
+			$return="ERR#0027";//用户点赞作品失败
 		}
+			
+		return $return;
+	}
 	//-------------------------------------------------------------------------------------------------
 	
 	//关注作品
 	function FavArticle($articleID,$userID,$favTime)
 	{
-		$favSql="insert into USER_FAVORITE_ARTICLE (userID,favArticleID,favTime,favStatus) values ('$userID','$articleID','$favTime')";
-		$res=$this->db->query('$favSql');
+		//Prepare SQL parameter data
+		$dataInsert[0] = $userID;
+		$dataInsert[1] = $articleID;
+		$dataInsert[2] = $favTime;
+		
+		$favSql="insert into USER_FAVORITE_ARTICLE (userID,favArticleID,favTime) values (?, ?, ?)";
+		$res=$this->db->query($favSql, $dataInsert);
 		
 		if($res)
 		{
-			$updateSql="update ARTICLE set favSum=favSum+1 where articleID='$articleID'";
-			$res2=$this->db->query('$updateSql');
+			$updateSql="update ARTICLE set favSum=favSum+1 where articleID=?";
+			$res2=$this->db->query($updateSql, $articleID);
 			
 			if($res2)
 			{
 				$return=1;
-				}//if:$res2
+			}//if:$res2
 			else
 			{
 				$retuen="ERR#0014"; //用户关注作品成功，但是被关注作品的被关注数量却没有+1
-				}
-			}//if:$res
+			}
+		}//if:$res
 		else
 		{
 			$return="ERR#0015";//用户关注作品失败
-			}
-			
-			return $return;
 		}
+			
+		return $return;
+	}
 	//-------------------------------------------------------------------------------------------------
 	
 	//点击缩略图进行详细查看作品从而产生的记录
 	function VisitArticle($userID,$targetArticleID,$visitTime)
 	{
-		$visitSql="insert into ARTICLE_VISIT (userID,targetArticleID,visitTime) values ('$userID','$targetArticleID','$visitTime')";
-		$res=$this->db->query('$visitSql');
+		//Prepare SQL parameter data
+		$dataInsert[0] = $userID;
+		$dataInsert[1] = $targetArticleID;
+		$dataInsert[2] = $visitTime;
+		
+		$visitSql="insert into ARTICLE_VISIT (userID,targetArticleID,visitTime) values (?, ?, ?)";
+		$res=$this->db->query($visitSql, $dataInsert);
 		
 		if($res)
 		{
-			$updateSql="update ARTICLE set deepViewSum=deepViewSum+1 where articleID='$articleID'";
-			$res2=$this->db->query('$updateSql');
+			$updateSql="update ARTICLE set deepViewSum=deepViewSum+1 where articleID=?";
+			$res2=$this->db->query($updateSql, $articleID);
 			
 			if($res2)
 			{
 				$return=1;
-				}//if:$res2
+			}//if:$res2
 			else
 			{
 				$retuen="ERR#0016"; //用户详细查看作品成功，但是被关注作品的被详细查看数量却没有+1
-				}
-			}//if:$res
+			}
+		}//if:$res
 		else
 		{
 			$return="ERR#0017";//用户详细查看作品失败
-			}
-			
-			return $return;
 		}
-	
+			
+		return $return;
+	}
 	//-------------------------------------------------------------------------------------------------
+	
 	 /**
 	 * A "LoadByKeyword" function for retrieving article information by keyword   
 	 *
@@ -260,14 +431,15 @@ class article_model extends CI_Model
      */
 	function LoadByKeyword($keyword){
 	
+	    $data = "%".$keyword."%";
 		// Enquiry ARTICLE info by keyword except "DELETE" records
 		$loadByKeywordSql="select * from ARTICLE 
-		                    where keyword like '%".$keyword."%' 
+		                    where keyword like ? 
 						      and articleStatus <> 'DELETE'";
-		$loadByKeywordRes=$this->db->query($loadByKeywordSql);
+		$loadByKeywordRes=$this->db->query($loadByKeywordSql, $data);
 		
 		if($loadByKeywordRes){
-			return "1";
+			return $loadByKeywordRes;
 		}
 		else{
 			return "ERR0023"; //failed
@@ -287,27 +459,33 @@ class article_model extends CI_Model
      */
 	function LoadByGroupKeyword($keyword, $groupName1, $groupName2){
 	
+		//Prepare SQL parameter data
+	    $data[0] = "%".$keyword."%";
+		$data[1] = $groupName1;
+		$data[2] = $groupName2;
+		
 		// Prepare SQL statement to enquiry ARTICLE info by keyword except "DELETE" records
 		$loadByGroupKeywordSql="select * from ARTICLE t1
-		                         where keyword like '%".$keyword."%'
+		                         where keyword like ?
 								   and articleStatus <> 'DELETE'
 								   and exists (select 1 from GROUP 
 								                where t1.groupID = groupID
-								                  and groupName1 = '".$groupName1."'
-												  and groupName2 = '".$groupName2."')";
+								                  and groupName1 = ?
+												  and groupName2 = ?)";
 												  
 		// Execute the SQL
-		$loadByGroupKeywordRes=$this->db->query($loadByGroupKeywordSql);
+		$loadByGroupKeywordRes=$this->db->query($loadByGroupKeywordSql, $data);
 		
 		// If SQL execution successfully, return error code. Otherwise, return "1" 
 		if($loadByGroupKeywordRes){
-			return "1";
-				}
+			return $loadByGroupKeywordRes;
+		}
 		else{
 			return "ERR0024"; //failed
-				}
+		}
 	}
 	//-------------------------------------------------------------------------------------------------
+	
     /**
 	 * A "LoadByReport" function for retrieving reported article information
      *
@@ -322,13 +500,15 @@ class article_model extends CI_Model
 		$loadByReportRes=$this->db->query($loadByReportSql);
 		
 		if($loadByReportRes){
-			return "1";
-				}
+			return $loadByReportRes;
+		}
 		else{
 			return "ERR0025"; //failed
-				}
 		}
+	}
 	//-------------------------------------------------------------------------------------------------
+	
+	
 }//model end
 
 ?>
