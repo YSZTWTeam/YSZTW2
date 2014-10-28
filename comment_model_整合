@@ -1,0 +1,294 @@
+<?php
+class comment_model extends CI_Model
+{
+	//load关于某作品的全部评价，按评论日期排列
+	function LoadByArticle($articleID)
+	{
+		$sql="select * from COMMENT where $targetArticleID=? order by commentTime";
+		$res=$this->db->query($sql,$articleID);
+		
+		if($res)
+		{
+			$return=$res;
+			}//if:$res
+		else
+		{
+			$return="ERR#0018"; //读取某作品评论失败
+			}
+		}
+	//-------------------------------------------------------------------------------------------------
+	
+	//load某用户发出的所有评论，按评论日期排列
+	function LoadByUser($userID)
+	{
+		$sql="select * from COMMENT where $userID=? order by commentTime";
+		$res=$this->db->query($sql,$userID);
+		
+		if($res)
+		{
+			$return=$res;
+			}//if:$res
+		else
+		{
+			$return="ERR#0019"; //读取某用户曾发表的评论失败
+			}
+		}
+	//-------------------------------------------------------------------------------------------------
+	
+		
+	//load某用户收到的所有评论，按评论日期排列
+	function LoadByArtist($targetUserID)
+	{
+		$sql="select * from COMMENT where $targetUserID=? order by commentTime";
+		$res=$this->db->query($sql,$targetUserID);
+		
+		if($res)
+		{
+			$return=$res;
+			}//if:$res
+		else
+		{
+			$return="ERR#0020"; //读取某关于用户的评论失败
+			}
+		}
+	//-------------------------------------------------------------------------------------------------
+
+	
+	//load所有被举报的评论ID
+	function GetIDByReport()
+	{
+		$sql="select targetCommentID from REPORT where $targetCommentID!='' order by reportTime";
+		$res=$this->db->query($sql);
+		
+		if($res)
+		{
+			$return=$res;
+			}//if:$res
+		else
+		{
+			$return="ERR#0032"; //读取所有被举报评论ID失败
+			}
+		}
+	//-------------------------------------------------------------------------------------------------
+	
+	//load某用户对某作品的全部评论，按评论日期排列
+	function LoadByArticleUser($articleID,$userID)
+	{
+		$loadData[0]=$articleID;
+		$loadData[1]=$userID;
+		$sql="select * from COMMENT where $targetArticleID=? and userID=? order by commentTime";
+		$res=$this->db->query($sql,$loadData);
+		
+		if($res)
+		{
+			$return=$res;
+			}//if:$res
+		else
+		{
+			$return="ERR#0033"; //读取某用户对于某作品的评论失败
+			}
+		}
+	//-------------------------------------------------------------------------------------------------
+	
+/**
+	 * A "AddComment" function for adding comment for certain article   
+	 *
+     * @param $articleID
+     * @param $userID
+     * @param $targetUserID
+     * @param $content
+     * @param $commentTime
+     * @param $commentStatus  
+     *
+     * @return "1"        - success
+	 *         "ERR#0034" - failed
+	 *         "ERR#0035" - failed
+     */
+	function AddComment($articleID, $userID, $targetUserID, $content, $commentTime, $commentStatus){
+			
+		// Prepare SQL parameter data
+        $dataInsert[0]  = $articleID;
+        $dataInsert[1]  = $userID;
+        $dataInsert[2]  = $targetUserID;
+        $dataInsert[3]  = $content;
+        $dataInsert[4]  = $commentTime;
+        $dataInsert[5]  = $commentStatus;
+        $dataInsert[6]  = 0;
+		// Insert record into COMMENT 
+		$insertSql="insert into COMMENT (targetArticleID, 
+												userID, 
+												targetUserID, 
+												updateTime, 
+												content, 
+												commentTime, 
+												commentStatus,
+												commentSum) 
+						  values (?, ?, ?, now(), ?, ?, ?, ?)";	
+		$insertRes=$this->db->query($insertSql, $dataInsert);
+		
+		// If add comment successfully, add the comment count for article
+		if($insertRes){
+			$updateSql="update ARTICLE set commentSum = commentSum + 1 where articleID = ?";
+			$updateRes=$this->db->query($updateSql, $articleID);
+			
+			if($updateRes){
+				return "1";
+			}//if:$updateRes
+			else{
+				return "ERR#0034"; //failed
+			}
+		}//if:$insertRes
+		
+		else{
+			return "ERR0035"; //failed
+		}
+	}
+	//-------------------------------------------------------------------------------------------------
+	
+    /**
+	 * A "UpdateComment" function for updating comment for certain article   
+	 *
+     * @param $commentID
+     * @param $content
+     *
+     * @return "1"        - success
+	 *         "ERR#0036" - failed
+     */
+	function UpdateComment($commentID, $content){
+			
+		// Prepare SQL parameter data
+        $dataUpdate[0]  = $content;
+        $dataUpdate[1]  = $commentID;
+		// Insert record into COMMENT 
+		$updateSql="update COMMENT 
+		               set content    = ?,
+					       updateTime = now()
+					 where commentID  = ?";	
+		$updateRes=$this->db->query($updateSql, $dataUpdate);
+		
+		// If update successfully, return "1". Else return error code
+		if($updateRes){
+			return "1";
+		}
+		else{
+			return "ERR0036"; //failed
+		}
+	}
+	//-------------------------------------------------------------------------------------------------
+	
+    /**
+	 * A "AddReply" function for adding reply for certain comment   
+	 *
+     * @param $userID
+     * @param $targetUserID
+     * @param $targetCommentID
+     * @param $content
+     * @param $commentTime
+     * @param $commentStatus  
+     *
+     * @return "1"        - success
+	 *         "ERR#0037" - failed
+	 *         "ERR#0038" - failed
+     */
+	function AddReply($targetCommentID, $articleID, $userID, $targetUserID, $content, $replyTime, $replyStatus){
+			
+		// Prepare SQL parameter data
+        $dataInsert[0]  = $userID;
+        $dataInsert[1]  = $targetUserID;
+        $dataInsert[2]  = $targetCommentID;
+        $dataInsert[3]  = $content;
+        $dataInsert[4]  = $commentTime;
+        $dataInsert[5]  = $commentStatus;
+		// Insert record
+		$insertSql="insert into REPLY (userID, 
+									   targetUserID, 
+									   targetCommentID,
+									   content, 
+									   commentTime, 
+									   updateTime, 
+									   replyStatus) 
+						  values (?, ?, ?, ?, now(), ?)";	
+		$insertRes=$this->db->query($insertSql, $dataInsert);
+		
+		// If add comment successfully, add the comment count for article
+		if($insertRes){
+			$updateSql="update COMMENT set commentSum = commentSum + 1 where targetCommentID = ?";
+			$updateRes=$this->db->query($updateSql, $targetCommentID);
+			
+			if($updateRes){
+				return "1";
+			}//if:$updateRes
+			else{
+				return "ERR#0037"; //failed
+			}
+		}//if:$insertRes
+		
+		else{
+			return "ERR0038"; //failed
+		}
+	}
+	//-------------------------------------------------------------------------------------------------
+	
+    /**
+	 * A "UpdateReply" function for updating reply for certain comment   
+	 *
+     * @param $replyID
+     * @param $content
+     *
+     * @return "1"        - success
+	 *         "ERR#0039" - failed
+     */
+	function UpdateReply($replyID, $content){
+			
+		// Prepare SQL parameter data
+        $dataUpdate[0]  = $content;
+        $dataUpdate[1]  = $replyID;
+		// Insert record into COMMENT 
+		$updateSql="update REPLY 
+		               set content    = ?,
+					       updateTime = now()
+					 where replyID    = ?";	
+		$updateRes=$this->db->query($updateSql, $dataUpdate);
+		
+		// If update successfully, return "1". Else return error code
+		if($updateRes){
+			return "1";
+		}
+		else{
+			return "ERR0039"; //failed
+		}
+	}
+	//-------------------------------------------------------------------------------------------------
+	
+	 /**
+	 * A "LoadByKeyword" function for retrieving comment information by keyword   
+	 *
+     * @param $keyword   
+     *
+     * @return "1"        - success
+	 *         "ERR#0040" - failed
+     */
+	function LoadByKeyword($keyword){
+	
+	    $data = "%".$keyword."%";
+		// Enquiry ARTICLE info by keyword except "DELETE" records
+		$loadByKeywordSql="select * from COMMENT 
+		                    where keyword like ? 
+						      and commentStatus <> 'DELETE'
+							order by commentTime DESC";
+		$loadByKeywordRes=$this->db->query($loadByKeywordSql, $data);
+		
+		if($loadByKeywordRes){
+			return $loadByKeywordRes;
+		}
+		else{
+			return "ERR0040"; //failed
+		}
+	}
+	//-------------------------------------------------------------------------------------------------
+
+	
+	
+	
+	}
+?>
