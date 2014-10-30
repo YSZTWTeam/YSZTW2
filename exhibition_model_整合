@@ -1,0 +1,175 @@
+<?php
+class exhibition_model extends CI_Model
+{
+	//创建展厅
+	function CreateExhibition($exName,$exDesc,$userID,$exStatus,$exType,$groupName1,$groupName2,$keyword)
+	{
+		//get GroupID first
+		$groupData[0]=$groupName1;
+		$groupData[1]=$groupName2;
+		$getGroupIDSql="select groupID from GROUP where groupName1=?,groupName2=?";
+		$getGroupID=$this->db->query($getGroupIDSql,$groupData);
+		$groupIDRow=$getGroupID->result_array();
+		$groupID=$groupIDRow['groupID'];
+		
+		$insertData[0]=$exName;
+		$insertData[1]=$exDesc;
+		$insertData[2]=$userID;
+		$insertData[3]=$exStatus;
+		$insertData[4]=$exType;
+		$insertData[5]=$groupID;
+		$insertData[6]=$keyword;
+
+		$insertSql="insert into EXHIBITION (exName,exDesc,userID,createTime,updateTime,exStatus,exType,groupID,keyword) values (?,?,?,now(),now(),?,?,?,?)";
+		$res=$this->db->query($insertSql,$insertData);
+		
+		if($res)
+		{
+			$return=1;
+			}//if:$res
+		else
+		{
+			$return="ERR#0051";//创建展厅失败
+			}
+			return $res;
+		}
+
+	//-------------------------------------------------------------------------------------------------
+	
+	//把作品放进展厅
+	function PutArticleIntoExhibition($exID,$articleID,$userID)
+	{
+		$insertData[0]=$exID;
+		$insertData[1]=$articleID;
+		
+		$insertSql="insert into EXHIBITION_ARTICLE (exID,articleID,inputTime) values (?,?,now())";
+		$res=$this->db->query($insertSql,$insertData);
+		
+		if($res)
+		{
+			$return=1;
+			}//if:$res
+		else
+		{
+			$return="ERR#0052";//把物品放入展厅失败
+			}
+			return $res;
+		}
+	//-------------------------------------------------------------------------------------------------
+	
+	//关闭展厅
+	function CloseExhibition($exID)
+	{
+		$updateSql="update EXHIBITION set exStatus='DELETE', updateTime=now() where exID=?";
+		
+		$res=$this->db->query($updateSql,$exID);
+		
+		if($res)
+		{
+			$return=1;
+			}//if:$res
+		else
+		{
+			$return="ERR#0053";//关闭展厅失败
+			}
+			return $res;
+		
+		}
+	//-------------------------------------------------------------------------------------------------
+	
+	//对展厅点赞
+	function LikeExhibition($exID,$userID)
+	{
+		$insertData[0]=$userID;
+		$insertData[1]=$exID;
+		$insertSql="insert into LIKE (userID,targetExID,likeTime) values (?,?,now())";
+		$res=$this->db->query($insertSql,$insertData);
+		
+		if($res)
+		{
+			$updateSql="update EXHIBITION set likeSum=likeSum+1 where exID=?";
+			$res2=$this->db->query($updateSql,$exID);
+			
+			if($res2)
+			{
+				$return=1;
+				}//if:$res2
+			else
+			{
+				$return="ERR#0054";//为展厅点赞成功，但是点赞记录未+1
+				}
+			}//if:$res
+		else
+		{
+			$return="ERR#0055";//为展厅点赞失败
+			}
+		
+		return $return;
+		}
+	//-------------------------------------------------------------------------------------------------
+	
+	//展厅访问记录生成
+	function VisitExhibition($exID,$userID)
+	{
+		$insertData[0]=$userID;
+		$insertData[1]=$exID;
+		$insertSql="insert into EXHIBITION_VISIT (userID,targetExID,visitTime) values (?,?,now())";
+		$res=$this->db->query($insertSql,$insertData);
+		
+		if($res)
+		{
+			$updateSql="update EXHIBITION set visitSum=visitSum+1 where exID=?";
+			$res2=$this->db->query($updateSql,$exID);
+			
+			if($res2)
+			{
+				$return=1;
+				}//if:$res2
+			else
+			{
+				$return="ERR#0056";//访问展厅成功，但是访问记录未+1
+				}
+			}//if:$res
+		else
+		{
+			$return="ERR#0057";//访问展厅失败
+			}
+		
+		return $return;
+		}
+	//-------------------------------------------------------------------------------------------------
+	
+	//关注展厅
+	function FavExhibition($exID,$userID,$favStatus)
+	{
+		$insertData[0]=$userID;
+		$insertData[1]=$exID;
+		$insertData[2]=$favStatus;
+		$insertSql="insert into USER_FAVORITE_EXHIBITION (userID,favExID,favTime,favStatus,unread) values (?,?,now(),?,'0')";
+		$res=$this->db->query($insertSql,$insertData);
+		
+		if($res)
+		{
+			$updateSql="update EXHIBITION set favSum=favSum+1 where exID=?";
+			$res2=$this->db->query($updateSql,$exID);
+			
+			if($res2)
+			{
+				$return=1;
+				}//if:$res2
+			else
+			{
+				$return="ERR#0058";//关注展厅成功，但是关注记录未+1
+				}
+			}//if:$res
+		else
+		{
+			$return="ERR#0059";//关注展厅失败
+			}
+		
+		return $return;
+		}
+	//-------------------------------------------------------------------------------------------------
+	
+}//model end
+?>
