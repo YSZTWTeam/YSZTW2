@@ -1,0 +1,104 @@
+<?php
+class type_model extends CI_Model{
+	
+    /**
+	 * A "AddType" function for adding type info  
+	 *
+     * @param $typeName
+     *
+     * @return "1"        - success
+	 *         "ERR#0047" - failed
+     */
+	function AddType($typeName){
+		
+		$insertSql = "insert into TYPE (typeName, 
+									    addTime, 
+									    updateTime) 
+				      values (?, now(), now())";	
+		$insertRes = $this->db->query($insertSql, $typeName);
+		
+		if($insertRes){
+			return "1";
+		}
+		else{
+			return "ERR0047"; //failed
+		}
+	}
+	//-------------------------------------------------------------------------------------------------
+	
+    /**
+	 * A "UpdateType" function for updating type info for certain id   
+	 *
+     * @param $typeID
+     * @param $typeName
+     *
+     * @return "1"        - success
+	 *         "ERR#0048" - failed
+     */
+	function UpdateType($typeID, $typeName){
+		
+		// Prepare SQL parameter data
+        $dataUpdate[0]  = $typeName;
+        $dataUpdate[1]  = $typeID;
+		// Update record into TYPE 
+		$updateSql = "update TYPE 
+		                 set typeName   = ?,
+					         updateTime = now()
+					   where typeID     = ?";	
+		$updateRes = $this->db->query($updateSql, $dataUpdate);
+		
+		// If update successfully, return "1". Else return error code
+		if($updateRes){
+			return "1";
+		}
+		else{
+			return "ERR0048"; //failed
+		}
+	}
+	//-------------------------------------------------------------------------------------------------
+	
+    /**
+	 * A "DeleteType" function to delete certain type   
+	 *
+     * @param $typeID
+     *
+     * @return "1"        - success
+	 *         "ERR#0049" - failed
+     */
+	function DeleteType($typeID){
+			
+		$deleteSql = "delete from TYPE where typeID = ?";	
+		$deleteRes = $this->db->query($deleteSql, $typeID);
+		
+		if($deleteRes){
+			return "1";
+		}
+		else{
+			return "ERR0049"; //failed
+		}
+	}
+	//-------------------------------------------------------------------------------------------------
+	
+    /**
+	 * A "LoadAllType" function to load all type   
+	 *
+     * @return $loadRes   - success
+	 *         "ERR#0045" - failed
+     */
+	function LoadAllType(){
+
+		$loadSql = "select * from TYPE";	
+		$loadRes=$this->db->query($loadSql);
+		
+		if($loadRes){
+			return $loadRes;
+		}
+		else{
+			return "ERR0050"; //failed
+		}
+	}
+	//-------------------------------------------------------------------------------------------------
+
+}
+
+?>
