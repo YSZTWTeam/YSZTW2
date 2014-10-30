@@ -1,0 +1,178 @@
+<?php
+class group_model extends CI_Model{
+	
+    /**
+	 * A "AddGroup" function for adding group info  
+	 *
+     * @param $groupName1
+     * @param $groupName2
+     * @param $groupDesc
+     * @param $typeID 
+     *
+     * @return "1"        - success
+	 *         "ERR#0041" - failed
+	 *         "ERR#0042" - failed
+     */
+	function AddGroup($groupName1, $groupName2, $groupDesc, $typeID){
+		
+		// Check whether it's same groupName1 + groupName2
+        $dataSelect[0]  = $groupName1;
+        $dataSelect[1]  = $groupName2;
+		$selectSql = "select * from GROUP
+		               where groupName1 = ?
+					     and groupName2 = ?";
+		$selectRes = $his->db->query($selectSql, $dataSelect);
+		// If exists same groupName1 + groupName2, return error code and exit.
+		if($selectRes->num_rows() > 0){
+			return "ERR#0041";
+		}
+		
+		// Prepare SQL parameter data
+        $dataInsert[0]  = $groupName1;
+        $dataInsert[1]  = $groupName2;
+        $dataInsert[2]  = $groupDesc;
+        $dataInsert[3]  = $typeID;
+		// Insert record into GROUP 
+		$insertSql = "insert into GROUP (groupName1, 
+						     		     groupName2, 
+									     groupDesc, 
+									     typeID, 
+									     addTime, 
+									     updateTime) 
+						  values (?, ?, ?, ?, now(), now())";	
+		$insertRes = $this->db->query($insertSql, $dataInsert);
+		
+		// If add group successfully, return "1". Else,return error code. 
+		if($insertRes){
+			return "1";
+		}
+		else{
+			return "ERR0042"; //failed
+		}
+	}
+	//-------------------------------------------------------------------------------------------------
+	
+    /**
+	 * A "UpdateGroup" function for updating group info for certain id   
+	 *
+     * @param $groupID
+     * @param $groupName1
+     * @param $groupName2
+     * @param $groupDesc
+     * @param $typeID 
+     *
+     * @return "1"        - success
+	 *         "ERR#0041" - failed
+	 *         "ERR#0043" - failed
+     */
+	function UpdateGroup($groupID, $groupName1, $groupName2, $groupDesc, $typeID){
+			
+		// Check whether it's same groupName1 + groupName2
+        $dataSelect[0]  = $groupName1;
+        $dataSelect[1]  = $groupName2;
+		$selectSql = "select * from GROUP
+		               where groupName1 = ?
+					     and groupName2 = ?";
+		$selectRes = $this->db->query($selectSql, $dataSelect);
+		// If exists same groupName1 + groupName2, return error code and exit.
+		if($selectRes->num_rows() > 0){
+			return "ERR#0041";
+		}
+		
+		// Prepare SQL parameter data
+        $dataUpdate[0]  = $groupName1;
+        $dataUpdate[1]  = $groupName2;
+        $dataUpdate[2]  = $groupDesc;
+        $dataUpdate[3]  = $typeID;
+        $dataUpdate[4]  = $groupID;
+		// Insert record into GROUP 
+		$updateSql = "update GROUP 
+		                 set groupName1 = ?,
+					         groupName2 = ?,
+						     groupDesc  = ?,
+						     typeID     = ?,
+					         updateTime = now()
+					   where groupID    = ?";	
+		$updateRes = $this->db->query($updateSql, $dataUpdate);
+		
+		// If update successfully, return "1". Else return error code
+		if($updateRes){
+			return "1";
+		}
+		else{
+			return "ERR0043"; //failed
+		}
+	}
+	//-------------------------------------------------------------------------------------------------
+	
+    /**
+	 * A "DeleteGroup" function to delete certain group   
+	 *
+     * @param $groupID
+     *
+     * @return "1"        - success
+	 *         "ERR#0044" - failed
+     */
+	function DeleteGroup($groupID){
+			
+		$deleteSql = "delete from GROUP where groupID = ?";	
+		$deleteRes = $this->db->query($deleteSql, $groupID);
+		
+		if($deleteRes){
+			return "1";
+		}
+		else{
+			return "ERR0044"; //failed
+		}
+	}
+	//-------------------------------------------------------------------------------------------------
+	
+    /**
+	 * A "LoadAllGroup" function to load all group   
+	 *
+     * @return $loadRes   - success
+	 *         "ERR#0045" - failed
+     */
+	function LoadAllGroup(){
+
+		$loadSql = "select * from GROUP";	
+		$loadRes=$this->db->query($loadSql);
+		
+		if($loadRes){
+			return $loadRes;
+		}
+		else{
+			return "ERR0045"; //failed
+		}
+	}
+	//-------------------------------------------------------------------------------------------------
+	
+	 /**
+	 * A "LoadGroupByType" function to load all group by typeName   
+	 *
+     * @param $typeName   
+     *
+     * @return $loadByTypeRes - success
+	 *         "ERR#0046"     - failed
+     */
+	function LoadGroupByType($typeName){
+	
+		$loadByTypeSql="select * from GROUP a
+		                    where exists 
+							     (select 1 from TYPE
+								   where a.typeID = typeID
+								     and typeName = ?)";
+		$loadByTypeRes=$this->db->query($loadByTypeSql, $typeName);
+		
+		if($loadByTypeRes){
+			return $loadByTypeRes;
+		}
+		else{
+			return "ERR0046"; //failed
+		}
+	}
+	//-------------------------------------------------------------------------------------------------
+
+}
+
+?>
