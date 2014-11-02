@@ -1,0 +1,151 @@
+<?php
+class message_model extends CI_Model{
+	
+    /**
+	 * A "Send" function for adding message info  
+	 *
+     * @param $userID
+     * @param $targetID
+     * @param $content
+     * @param $messageType 
+     *
+     * @return "1"        - success
+	 *         "ERR#0060" - failed
+     */
+	function Send($userID, $targetID, $content, $messageType){
+		
+		// Prepare SQL parameter data
+        $dataInsert[0] = $userID;
+        $dataInsert[1] = $targetID;
+        $dataInsert[2] = $content;
+        $dataInsert[3] = "UNREAD"; //default
+        $dataInsert[4] = $messageType;
+		// Insert record into MESSAGE 
+		$insertSql = "insert into MESSAGE (userID, 
+						     		       targetID, 
+									       content, 
+									       typeID, 
+									       sendTime, 
+									       updateTime,
+										   messageStatus,
+										   messageType) 
+						  values (?, ?, ?, ?, now(), now(), ?, ?)";	
+		$insertRes = $this->db->query($insertSql, $dataInsert);
+		
+		// If add message successfully, return "1". Else,return error code. 
+		if($insertRes){
+			return "1";
+		}
+		else{
+			return "ERR0060"; //failed
+		}
+	}
+	//-------------------------------------------------------------------------------------------------
+	
+    /**
+	 * A "UpdateRead" function for updating message into "READ" one   
+	 *
+     * @param $messageID
+     *
+     * @return "1"        - success
+	 *         "ERR#0061" - failed
+     */
+	function UpdateRead($messageID){
+		
+		// Prepare SQL parameter data
+        $dataUpdate[0] = "READ";
+        $dataUpdate[1] = $messageID;
+		// Update record for MESSAGE 
+		$updateSql = "update MESSAGE 
+		                 set messageStatus = ?,
+					         updateTime    = now()
+					   where messageID     = ?";	
+		$updateRes = $this->db->query($updateSql, $dataUpdate);
+		
+		// If update successfully, return "1". Else return error code
+		if($updateRes){
+			return "1";
+		}
+		else{
+			return "ERR0061"; //failed
+		}
+	}
+	//-------------------------------------------------------------------------------------------------
+	
+    /**
+	 * A "UpdateUnread" function for updating message into "UNREAD" one   
+	 *
+     * @param $messageID
+     *
+     * @return "1"        - success
+	 *         "ERR#0062" - failed
+     */
+	function UpdateUnread($messageID){
+		
+		// Prepare SQL parameter data
+        $dataUpdate[0] = "REREAD";
+        $dataUpdate[1] = $messageID;
+		// Update record for MESSAGE 
+		$updateSql = "update MESSAGE 
+		                 set messageStatus = ?,
+					         updateTime    = now()
+					   where messageID     = ?";	
+		$updateRes = $this->db->query($updateSql, $dataUpdate);
+		
+		// If update successfully, return "1". Else return error code
+		if($updateRes){
+			return "1";
+		}
+		else{
+			return "ERR0062"; //failed
+		}
+	}
+	//-------------------------------------------------------------------------------------------------
+	
+    /**
+	 * A "DeleteMessage" function to delete certain message   
+	 *
+     * @param $messageID
+     *
+     * @return "1"        - success
+	 *         "ERR#0063" - failed
+     */
+	function DeleteMessage($messageID){
+			
+		$deleteSql = "delete from MESSAGE where messageID = ?";	
+		$deleteRes = $this->db->query($deleteSql, $messageID);
+		
+		if($deleteRes){
+			return "1";
+		}
+		else{
+			return "ERR0063"; //failed
+		}
+	}
+	//-------------------------------------------------------------------------------------------------
+	
+	 /**
+	 * A "LoadMessageByUser" function to load all message by user id   
+	 *
+     * @param $userID   
+     *
+     * @return $loadByTypeRes - success
+	 *         "ERR#0064"     - failed
+     */
+	function LoadMessageByUser($userID){
+	
+		$loadByUserSql = "select * from MESSAGE where userID = ?";
+		$loadByUserRes=$this->db->query($loadByTypeSql, $userID);
+		
+		if($loadByUserRes){
+			return $loadByUserRes;
+		}
+		else{
+			return "ERR0064"; //failed
+		}
+	}
+	//-------------------------------------------------------------------------------------------------
+
+}
+
+?>
