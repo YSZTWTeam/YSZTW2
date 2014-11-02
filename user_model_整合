@@ -2,7 +2,7 @@
 	class user_model extends CI_Model{
 		
 	//按照Excel，这个Login方法可以引用4个变量：$loginName,$loginPsw,$loginTime,$loginPosition
-	function Login($loginName,$loginPsw,$loginTime,$loginPosition)
+	function Login($loginName,$loginPsw,$loginPosition)
 	{
 		//先验证
 		$verifyData[0]=$loginName;
@@ -23,7 +23,7 @@
 			
 			//取得userID就可以开始执行下面的SQL插入语句了
 			$historyData[0]=$userID;
-			$historyData[1]=$loginTime;
+			$historyData[1]=date('Y-m-d H:i:s'); 
 			$historyData[2]=$loginPosition;
 			$loginHistorySql="insert into USER_LOGIN_HISTORY (userID,loginTime,loginPosition) values (?,?,?)";
 			//词语句仅仅执行以下就行了，插不插入得了数据对用户登陆来说没什么影响，我们目前不需要去知道该语句是否成功。
@@ -52,7 +52,7 @@
 	//-------------------------------------------------------------------------------------------------------------
 	
 	//用户注册,这里面的变量我漏掉了$userGrade,因为我觉得作者的等级不应该由他们自己定，应该由我们工作人员去定。
-	function Reg($loginName,$loginPsw,$nickName,$trueName,$email,$mobileNum,$userStatus,$regTime,$activeTime,$birthday,$keyword,$userHobbyKeyword)
+	function Reg($loginName,$loginPsw,$nickName,$trueName,$email,$mobileNum,$userStatus,$birthday,$keyword,$userHobbyKeyword)
 	{
 		//先检查一下登陆名和昵称是否被注册过
 		$checkData[0]=$loginName;
@@ -78,12 +78,12 @@
 			if($res1)
 			{
 				
-				$otherData[0]=$regTime;
-				$otherData[1]=$activeTime;
+				$otherData[0]=date('Y-m-d H:i:s'); 
+				$otherData[1]=date('Y-m-d H:i:s'); 
 				$otherData[2]=$birthday;
 				$otherData[3]=$keyword;
 				$otherData[4]=$userHobbyKeyword;
-				$regUserOtherSql="insert into USER_OTHER (regTime,activeTime,birthday,keyword,userHobbyKeyword) values (?,?,?,?,?)";
+				$regUserOtherSql="insert into USER_OTHER (regTime,updateTime,birthday,keyword,userHobbyKeyword) values (?,?,?,?,?)";
 				$res2=$this->db->query($regUserOtherSql,$otherData);
 			
 			//在这里，以$res1的结果为准，只要插入成功，那么就应该返回1
@@ -163,8 +163,9 @@
 		if($userVerified)
 		{
 			$changeData[0]=$newLoginPsw;
-			$changeData[1]=$loginName;
-			$ChangePswSql="update USER_INFO set loginPsw=? where loginName=?";
+			$changeData[1]=date('Y-m-d H:i:s'); 
+			$changeData[2]=$loginName;
+			$ChangePswSql="update USER_INFO set loginPsw=?, updateTime=? where loginName=?";
 			$res=$this->db->query($ChangePswSql,$changeData);
 			
 			if($res)
@@ -186,7 +187,7 @@
 		
 		//添加用户间相互关注关系
 		//插入USER_FAVORITE_USER中,同时USER中相应$userID的作品favSum+1, 成功返回1，否则返回0
-		function FavUser($userID,$targetUserID,$favTime){
+		function FavUser($userID,$targetUserID){
 			
 			if(!isset($userID)||!isset($targetUserID)||!isset($targetUserID)){
 				$return=0;
@@ -195,7 +196,7 @@
 			//一般sql语句变量名，我们在后面加上"Sql"，第一个字母尽量大写
 			$insertData[0]=$userID;
 			$insertData[1]=$targetUserID;
-			$insertData[2]=$favTime;
+			$insertData[2]=date('Y-m-d H:i:s'); 
 			$insertData[3]=1;
 			$insertSql = "insert USER_FAVORITE_USER  (userID,favArticleID,favTime,favStatus) values (?,?,?,?)";
 			
@@ -236,12 +237,12 @@
      * @return 1 - success
 	 *         0 - failed
      */
-	function VisitUser($userID, $targetUserID, $visitTime){
+	function VisitUser($userID, $targetUserID){
 	
 		// Insert a history record for user visiting
 		$visitData[1]=$userID;
 		$visitData[2]=$targetUserID;
-		$visitData[3]=$visitTime;
+		$visitData[3]=date('Y-m-d H:i:s'); 
 		$addUserVisitSql = "insert into USER_VISIT (userId, targetUserId, vistTime) values(?,?,?)";
 		$addUserVisitRes = $this->db->query($addUserVisitSql,$visitData);
 		
